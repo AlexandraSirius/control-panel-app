@@ -1,0 +1,12 @@
+# Processing
+*.class
+*.log
+*.tmp
+
+# OS
+.DS_Store
+Thumbs.db
+
+# IDE
+.idea/
+.vscode/

@@ -8,9 +8,10 @@ int BASE_X = 0;
 int BASE_Y = 80;   // двигает всё ниже / выше
 
 // отдельный сдвиг ТОЛЬКО для матрицы кнопок
-int BTN_MATRIX_OFFSET_X = -400;  // ← МЕНЯЙ ЗДЕСЬ (в пикселях ДО масштаба)
+int BTN_MATRIX_OFFSET_X = -400;  
 // отдельный сдвиг для левого столбца энкодеров
-int LEFT_COLUMN_OFFSET_Y = -295;  // ← поднимаем вверх
+int LEFT_COLUMN_OFFSET_Y = -295;  
+
 // ===================================================
 // SCALE HELPERS
 // ===================================================
@@ -42,16 +43,21 @@ void initControls() {
   int knobTopStep = S(125);
 
   for (int i = 0; i < 9; i++) {
-    controls.add(
-      new Knob(
-        "KNOB_TOP_" + i,
-        knobTopX + i * knobTopStep,
-        knobTopY,
-        knobTopW,
-        knobTopH
-      )
+  
+    Knob k = new Knob(
+      "KNOB_TOP_" + i,
+      knobTopX + i * knobTopStep,
+      knobTopY,
+      knobTopW,
+      knobTopH
     );
+  
+    k.controlType = "knob";
+    k.protocolIndex = i;   // p0..p8
+  
+    controls.add(k);
   }
+
 
   // ---------------------------------
   // 2) Левый столбец – 4 энкодера
@@ -59,59 +65,65 @@ void initControls() {
   int knobLeftW = S(103);
   int knobLeftH = S(103);
   int knobLeftX = SX(46);
-  int knobLeftY = SY(458 + LEFT_COLUMN_OFFSET_Y);
-  int knobLeftStep = S(110);
+  int knobLeftY = SY(475 + LEFT_COLUMN_OFFSET_Y);
+  int knobLeftStep = S(130);
 
-  for (int i = 0; i < 4; i++) {
-    controls.add(
-      new Knob(
-        "KNOB_LEFT_" + i,
-        knobLeftX,
-        knobLeftY + i * knobLeftStep,
-        knobLeftW,
-        knobLeftH
-      )
+  for (int i = 0; i < 3; i++) {
+  
+    Knob k = new Knob(
+      "KNOB_LEFT_" + i,
+      knobLeftX,
+      knobLeftY + i * knobLeftStep,
+      knobLeftW,
+      knobLeftH
     );
+  
+    k.controlType = "knob";
+    k.protocolIndex = 9 + i;   // p9..p11
+  
+    controls.add(k);
   }
+
 
   // ---------------------------------
   // 3) Большой левый энкодер
   // ---------------------------------
-  controls.add(
-    new Knob(
-      "KNOB_BIG_1",
-      SX(188),
-      SY(198),
-      S(156),
-      S(159)
-    )
+  Knob enc = new Knob(
+    "ENCODER_0",
+    SX(188),
+    SY(198),
+    S(156),
+    S(159)
   );
+  enc.controlType = "encoder";   // ← КРИТИЧНО
+  enc.protocolIndex = 37;        // ← индекс по ТЗ
+  controls.add(enc);
 
   // ---------------------------------
-  // 4) Большой нижний энкодер
+  // 4 Большая кнопка под экраном
   // ---------------------------------
-  controls.add(
-    new Knob(
-      "KNOB_BIG_2",
-      SX(340),
-      SY(374),
-      S(156),
-      S(159)
-    )
+  BigButton btnBig = new BigButton(
+    "BTN_BIG",
+    SX(378),
+    SY(390),
+    S(141),
+    S(141)   // ← круглая
   );
+  btnBig.protocolIndex = 40;   // по ТЗ
+  controls.add(btnBig);
 
   // ---------------------------------
   // 5) Маленькая круглая кнопка
   // ---------------------------------
-  controls.add(
-    new Button(
-      "BTN_SMALL",
-      SX(200),
-      SY(429),
-      S(73),
-      S(70)
-    )
+  SmallRoundButton btnSmall = new SmallRoundButton(
+    "BTN_SMALL",
+    SX(200),
+    SY(415),
+    S(110)
   );
+  btnSmall.protocolIndex = 41;   // по ТЗ
+  controls.add(btnSmall);
+
 
   // ---------------------------------
   // 6) Экран
@@ -128,6 +140,7 @@ void initControls() {
 
   // ---------------------------------
   // 7) Матрица кнопок 6×4 (24 шт.)
+  // b0 .. b23
   // ---------------------------------
   int btnW = S(78);
   int btnH = S(70);
@@ -140,18 +153,22 @@ void initControls() {
 
   for (int row = 0; row < 4; row++) {
     for (int col = 0; col < 6; col++) {
+
       int bx = btnStartX + col * btnStepX;
       int by = btnStartY + row * btnStepY;
 
-      controls.add(
-        new Button(
-          "BTN_" + row + "_" + col,
-          bx,
-          by,
-          btnW,
-          btnH
-        )
+      int index = row * 6 + col;   // 0..23
+
+      Button b = new Button(
+        "BTN_" + row + "_" + col,
+        bx,
+        by,
+        btnW,
+        btnH
       );
+      b.protocolIndex = index;
+
+      controls.add(b);
     }
   }
 
@@ -166,10 +183,10 @@ void initControls() {
   controls.add(
     new Slider(
       "SLIDER_0",
-      SX(1132),        // X
-      SY(50),          // Y
-      S(60),           // ширина трека
-      S(210)           // высота трека
+      SX(1132),
+      SY(240),
+      S(60),
+      S(210)
     )
   );
 }
@@ -179,37 +196,54 @@ void initControls() {
 // ===================================================
 void drawControls() {
   for (ControlBase c : controls) {
-
     c.update();
     c.draw();
-
-    if (c instanceof Slider) {
-      Slider s = (Slider)c;
-      fill(255);
-      textAlign(CENTER, BOTTOM);
-      text(s.getMidiValue(), s.x + s.w / 2, s.y - 6);
-      println(c.getClass().getSimpleName() + "  " + c.id);
-    }
   }
 }
-
-
-
 
 // ===================================================
 // HANDLE CONTROL CLICK
 // ===================================================
 void handleControlClick() {
 
-  // органы выбираются только во вкладке ОРГАНЫ
+  // органы выбираются только во вкладке «ОРГАНЫ»
   if (activeTab != 0) return;
 
   selectedControl = null;
 
+  // 1. Ищем, по какому элементу кликнули
   for (ControlBase c : controls) {
     if (c.isHovered(mouseX, mouseY)) {
       selectedControl = c;
-      println("Выбран элемент: " + c.id);
+      break;
     }
   }
+
+  // 2. Если ни по чему не кликнули — выходим
+  if (selectedControl == null) return;
+
+  // 3. ДЕЛАЕМ ЭЛЕМЕНТ АКТИВНЫМ
+  activeControl = selectedControl;
+
+  // 4. Просто выводим, кто теперь активный
+  println(
+    "Активный орган: " +
+    activeControl.id + " -> " +
+    activeControl.getProtocolPrefix() +
+    activeControl.getProtocolIndex()
+  );
+}
+
+
+void handleEncoderAction(Knob encoder) {
+
+  if (activeControl == null) return;
+
+  println(
+    "Энкодер " + encoder.getEncoderModeName() +
+    " управляет " +
+    activeControl.id + " → " +
+    activeControl.getProtocolPrefix() +
+    activeControl.getProtocolIndex()
+  );
 }

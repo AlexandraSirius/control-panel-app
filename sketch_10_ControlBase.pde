@@ -2,7 +2,10 @@ abstract class ControlBase {
   String id;
   float x, y, w, h;
   String controlType = "";
-  int midiValue = 0; // универсальное значение 0..127 для любых аналоговых элементов (slider/рычаг/крутилка)
+  int midiValue = 0;
+  int protocolIndex = -1;  // номер для bX / pX / eX
+  ControlConfig config = new ControlConfig();
+ 
   ControlBase(String id, float x, float y, float w, float h) {
     this.id = id;
     this.x = x;
@@ -23,20 +26,13 @@ abstract class ControlBase {
   // =================================
   // UPDATE (по умолчанию пустой)
   // =================================
-  void update() {
-    // по умолчанию ничего
-  }
+  void update() {}
 
   // =================================
-  // MOUSE EVENTS (по умолчанию пустые)
+  // MOUSE EVENTS
   // =================================
-  void mousePressed() {
-    // переопределяется при необходимости
-  }
-
-  void mouseReleased() {
-    // переопределяется при необходимости
-  }
+  void mousePressed() {}
+  void mouseReleased() {}
 
   // =================================
   // HOVER CHECK
@@ -45,4 +41,20 @@ abstract class ControlBase {
     return mx >= x && mx <= x + w &&
            my >= y && my <= y + h;
   }
+
+  // =================================
+  // ПРОТОКОЛЬНЫЙ ПРЕФИКС (ШАГ 1 ПО ТЗ)
+  // =================================
+  char getProtocolPrefix() {
+    if (controlType.equals("button"))  return 'b';
+    if (controlType.equals("knob"))    return 'p';
+    if (controlType.equals("slider"))  return 'p';
+    if (controlType.equals("lever"))   return 'p';
+    if (controlType.equals("encoder")) return 'e';
+    return '?';
+  }
+  int getProtocolIndex() {
+    return protocolIndex;
+  }
+
 }

@@ -1,24 +1,23 @@
-class BigButton extends ControlBase {
+class SmallRoundButton extends ControlBase {
 
-  BigButton(String id, float x, float y, float w, float h) {
-    super(id, x, y, w, h);
-    controlType = "button";   // ← ВАЖНО
+  SmallRoundButton(String id, float x, float y, float d) {
+    super(id, x, y, d, d);
+    controlType = "button";
   }
 
   void drawControl() {
     float cx = x + w / 2;
     float cy = y + h / 2;
-    float r  = min(w, h);
 
     fill(isHovered(mouseX, mouseY) ? 180 : 140);
     noStroke();
-    ellipse(cx, cy, r, r);
+    ellipse(cx, cy, w, h);
   }
 
   boolean isHovered(float mx, float my) {
     float cx = x + w / 2;
     float cy = y + h / 2;
-    float r  = min(w, h) / 2;
+    float r = w / 2;
     return dist(mx, my, cx, cy) <= r;
   }
 }

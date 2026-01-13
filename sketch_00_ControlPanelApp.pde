@@ -9,3 +9,4 @@ ArrayList<ControlBase> controls = new ArrayList<ControlBase>();
 int activeTab = 0; // 0 — органы, 1 — цвета, 2 — сеть
 
 ControlBase selectedControl = null; // выбранный элемент
+ControlBase activeControl = null;
